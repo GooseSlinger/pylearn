@@ -21,6 +21,15 @@ def create_folder_with_init(path, is_database=False):
             else:
                 f.write("# init file\n")
 
+def create_git_ignore(path):
+    os.makedirs(path, exist_ok=True)
+    ignore_path = os.path.join(path, '.gitignore')
+    if not os.path.exists(ignore_path):
+        with open(ignore_path, "w") as f:
+            f.write(
+                "/__pycache__\n"
+            )
+
 # Проверка на существование файла
 def check_file_exists(file_path):
     if os.path.exists(file_path):
@@ -37,6 +46,7 @@ def make_project():
             os.makedirs(path)
             typer.echo(f"✅ Папка {folder} создана")
             create_folder_with_init(path, is_database=(folder == "database"))
+            create_git_ignore(path)
         else:
             typer.echo(f"⚠️ Папка {folder} уже существует")
 
@@ -57,6 +67,25 @@ def make_project():
     else:
         typer.echo("⚠️ Файл database.py уже существует")
 
+    main = os.path.join("main.py")
+    if not os.path.exists(main):
+        with open(main, "w") as f:
+            f.write(
+                'from fastapi import FastAPI\n'
+                'from fastapi.staticfiles import StaticFiles\n'
+                'from database import Base, engine\n\n'
+                'app = FastAPI()\n\n'
+                'Base.metadata.create_all(bind=engine)\n\n'
+                '@app.get("/")\n'
+                'async def root():\n'
+                '    return {"message": "Hello World!"}\n'
+            )
+        typer.echo("✅ Файл main.py создан")
+    else:
+        typer.echo("⚠️ Файл main.py уже существует")
+
+    create_git_ignore(BASE_DIR)
+
 # Команда создания модели
 @app.command()
 def make_model(name: str):
@@ -64,6 +93,7 @@ def make_model(name: str):
     create_folder_with_init(path)
     file_path = os.path.join(path, f"{pluralize(name)}.py")
     check_file_exists(file_path)
+    create_git_ignore(path)
 
     with open(file_path, "w") as f:
         f.write(
@@ -84,6 +114,7 @@ def make_schema(name: str):
     create_folder_with_init(path)
     file_path = os.path.join(path, f"{name}Schema.py")
     check_file_exists(file_path)
+    create_git_ignore(path)
 
     with open(file_path, "w") as f:
         f.write(
@@ -101,6 +132,7 @@ def make_route(name: str):
     create_folder_with_init(path)
     file_path = os.path.join(path, f"{name}Route.py")
     check_file_exists(file_path)
+    create_git_ignore(path)
 
     with open(file_path, "w") as f:
         f.write(
@@ -124,6 +156,7 @@ def make_service(name: str):
     create_folder_with_init(path)
     file_path = os.path.join(path, f"{name}Service.py")
     check_file_exists(file_path)
+    create_git_ignore(path)
 
     with open(file_path, "w") as f:
         f.write(
