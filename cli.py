@@ -3,7 +3,8 @@ import typer
 import inflect
 
 app = typer.Typer()
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) # корень
+# BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 'app'))  # из корня в нужную папку
 p = inflect.engine()
 
 def pluralize(name: str) -> str:
@@ -67,7 +68,7 @@ def make_project():
     else:
         typer.echo("⚠️ Файл database.py уже существует")
 
-    main = os.path.join("main.py")
+    main = os.path.join(BASE_DIR, "main.py")
     if not os.path.exists(main):
         with open(main, "w") as f:
             f.write(
@@ -75,7 +76,12 @@ def make_project():
                 'from fastapi.staticfiles import StaticFiles\n'
                 'from database import Base, engine\n\n'
                 'app = FastAPI()\n\n'
+                '# Создание таблиц\n'
                 'Base.metadata.create_all(bind=engine)\n\n'
+                '# Монтируем папку со статическимим файлами\n'
+                'app.mount("/files", StaticFiles(directory="storage/files"), name="files")\n\n'
+                '# Подключаем роуты\n'
+                'app.include_router(Rout.router, prefix="/path_name", tags=["User"])\n\n'
                 '@app.get("/")\n'
                 'async def root():\n'
                 '    return {"message": "Hello World!"}\n'
@@ -168,6 +174,20 @@ def make_service(name: str):
             f"        return 'Hello from {name}'\n"
         )
     typer.echo(f"✅ Сервис {name} создан")
+
+@app.command()
+def make_util(name: str):
+    path = os.path.join(BASE_DIR, "utils")
+    create_folder_with_init(path)
+    file_path = os.path.join(path, f"{name}Util.py")
+    check_file_exists(file_path)
+    create_git_ignore(path)
+
+    with open(file_path, "w") as f:
+        f.write(
+            f"# Util {name}"
+        )
+    typer.echo(f"✅ Утилита {name} создана")
 
 # Запуск CLI
 if __name__ == "__main__":
