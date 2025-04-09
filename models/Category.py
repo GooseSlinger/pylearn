@@ -13,6 +13,6 @@ class Category(Base):
     __tablename__ = 'categorys'
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True ,index=True)
+    name = Column(String(255), unique=True ,index=True)
 
     posts = relationship('Post', secondary='post_category', back_populates='categorys')
