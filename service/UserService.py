@@ -1,25 +1,39 @@
+from fastapi import HTTPException, UploadFile, BackgroundTasks
 from sqlalchemy.orm import Session
 from models.User import User
 from schemas.UserSchema import UserCreate, UserPatch
 from schemas.BaseSchema import ResponseMessage
-from fastapi import HTTPException, UploadFile
 import os
 import uuid
 from typing import List
+from utils.EmailUtil import send_email
 
 
 class UserService:
     def __init__(self, db: Session):
         self.db = db
 
-    def create_user(self, user: UserCreate):
+    def create_user(self, user: UserCreate, background_tasks: BackgroundTasks):
+        existing_user = self.db.query(User).filter(User.email == user.email).first()
+
+        if existing_user:
+            raise HTTPException(status_code=400, detail='Пользователь с таким email уже существует')
+
         db_user = User(name=user.name, email=user.email)
-        
         self.db.add(db_user)
         self.db.commit()
         self.db.refresh(db_user)
 
-        return db_user
+        background_tasks.add_task(
+            send_email,
+            user_email=db_user.email,
+            title='Добро пожаловать!',
+            message=f"{db_user.name}, вы успешно зарегистрированы!"
+        )
+
+        return ResponseMessage(message='Пользователь успешно создан')
+
+        
 
     def get_user(self, user_id: int):
         user = self.db.query(User).filter(User.id == user_id).first()
@@ -28,6 +42,7 @@ class UserService:
             raise HTTPException(status_code=404, detail="Пользователь не найден")
 
         return user
+    
 
     def get_all_users(self):
         return self.db.query(User).all()

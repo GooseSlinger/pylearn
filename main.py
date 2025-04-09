@@ -21,4 +21,4 @@ app.include_router(Category.router, prefix="/category", tags=["Category"])
 # Простой рут
 @app.get("/")
 async def root():
-    return {"message": "Привет! Это твой первый API на FastAPI"}
+    return {"message": "Hello world!"}

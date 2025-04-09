@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, UploadFile, Request
+from fastapi import APIRouter, Depends, File, UploadFile, BackgroundTasks
 from sqlalchemy.orm import Session
 from database import get_db
 from schemas.UserSchema import UserCreate, GetUser, UserPatch
@@ -15,8 +15,8 @@ def get_user_service(db: Session = Depends(get_db)):
     return UserService(db)
 
 @router.post("/create")
-async def create_user(user: UserCreate, service: UserService = Depends(get_user_service)):
-    return service.create_user(user)
+async def create_user(user: UserCreate, background_tasks: BackgroundTasks, service: UserService = Depends(get_user_service)):
+    return service.create_user(user, background_tasks)
 
 @router.get("/get/{id}", response_model=GetUser)
 async def get_user(id: int, service: UserService = Depends(get_user_service)):
