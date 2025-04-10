@@ -40,3 +40,10 @@ class PostService:
         self.db.commit()
         
         return ResponseMessage(message='Статья успешно удалена')
+    
+    def show_all_posts(self, page: int):
+        limit = 5
+        offset = (page -1) * limit
+        posts = self.db.query(Post).offset(offset).limit(limit).all()
+
+        return posts

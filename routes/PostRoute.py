@@ -23,3 +23,7 @@ async def show_posts(user_id: int, service: PostService = Depends(get_post_servi
 @router.delete("/delete/{id}", response_model=ResponseMessage)
 async def delete_post(id: int, service: PostService = Depends(get_post_service)):
     return service.delete_post(id)
+
+@router.get("/show-all", response_model=List[CreatePost])
+async def show_all_posts(page: int, service: PostService = Depends(get_post_service)):
+    return service.show_all_posts(page)
